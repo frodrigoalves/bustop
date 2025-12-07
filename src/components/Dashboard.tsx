@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, FileText, Calendar, User, AlertTriangle, ExternalLink, LogOut, Download, Filter, ChevronDown, ChevronUp, Save } from "lucide-react";
+import { Search, FileText, Calendar, User, AlertTriangle, ExternalLink, LogOut, Download, Filter, ChevronDown, ChevronUp, Save, Car, Phone } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -48,6 +48,14 @@ interface Imagem {
   nome_arquivo: string;
 }
 
+interface VeiculoEnvolvido {
+  id: number;
+  placa: string;
+  modelo: string;
+  cor: string;
+  observacoes: string;
+}
+
 const statusLabels: Record<string, string> = {
   novo: "Novo",
   em_analise: "Em Análise",
@@ -76,6 +84,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [selectedSinistro, setSelectedSinistro] = useState<Sinistro | null>(null);
   const [testemunhas, setTestemunhas] = useState<Testemunha[]>([]);
   const [imagens, setImagens] = useState<Imagem[]>([]);
+  const [veiculos, setVeiculos] = useState<VeiculoEnvolvido[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [showFunnel, setShowFunnel] = useState(false);
@@ -156,13 +165,15 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
   const fetchDetalhes = async (sinistroId: number) => {
     try {
-      const [testemunhasRes, imagensRes] = await Promise.all([
+      const [testemunhasRes, imagensRes, veiculosRes] = await Promise.all([
         supabase.from("testemunhas").select("*").eq("sinistro_id", sinistroId),
         supabase.from("imagens").select("*").eq("sinistro_id", sinistroId),
+        supabase.from("veiculos_envolvidos").select("*").eq("sinistro_id", sinistroId),
       ]);
 
       setTestemunhas(testemunhasRes.data || []);
       setImagens(imagensRes.data || []);
+      setVeiculos(veiculosRes.data || []);
     } catch (error) {
       console.error("Error fetching details:", error);
     }
@@ -322,20 +333,20 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+      <header className="border-b bg-card sticky top-0 z-10">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold">Dashboard de Gestão</h1>
-              <p className="text-sm text-muted-foreground">Sistema de Controle de Ocorrências</p>
+              <h1 className="text-xl sm:text-2xl font-bold">Dashboard de Gestão</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Sistema de Controle de Ocorrências</p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={exportToPDF}>
-                <Download className="h-4 w-4 mr-2" />
-                Exportar PDF
+              <Button variant="outline" size="sm" onClick={exportToPDF} className="text-xs sm:text-sm">
+                <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Exportar</span> PDF
               </Button>
-              <Button variant="outline" size="sm" onClick={onLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="sm" onClick={onLogout} className="text-xs sm:text-sm">
+                <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Sair
               </Button>
             </div>
@@ -343,43 +354,43 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total de Ocorrências</CardTitle>
+            <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Total</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{sinistros.length}</div>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-2xl sm:text-3xl font-bold">{sinistros.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Novos</CardTitle>
+            <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Novos</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-500">
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-2xl sm:text-3xl font-bold text-blue-500">
                 {sinistros.filter(s => !s.status || s.status === "novo").length}
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Em Análise</CardTitle>
+            <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Em Análise</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-amber-500">
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-2xl sm:text-3xl font-bold text-amber-500">
                 {sinistros.filter(s => s.status === "em_analise").length}
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Concluídos</CardTitle>
+            <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Concluídos</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-500">
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-2xl sm:text-3xl font-bold text-green-500">
                 {sinistros.filter(s => s.status === "concluido").length}
               </div>
             </CardContent>
@@ -391,10 +402,10 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
           <Button 
             variant="outline" 
             onClick={() => setShowFunnel(!showFunnel)}
-            className="w-full justify-between"
+            className="w-full justify-between text-xs sm:text-sm"
           >
             <span className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
+              <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Análise em Funil (BI)
             </span>
             {showFunnel ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -407,33 +418,33 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
         {/* Search and Filters */}
         <Card>
-          <CardContent className="pt-6 space-y-4">
+          <CardContent className="pt-4 sm:pt-6 space-y-4 px-3 sm:px-6">
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por protocolo, local ou motorista..."
+                  placeholder="Buscar protocolo, local ou motorista..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 text-sm"
                 />
               </div>
               <Button 
                 variant="outline" 
                 onClick={() => setShowFilters(!showFilters)}
-                className={cn(showFilters && "bg-accent")}
+                className={cn(showFilters && "bg-accent", "shrink-0")}
+                size="icon"
               >
-                <Filter className="h-4 w-4 mr-2" />
-                Filtros
+                <Filter className="h-4 w-4" />
               </Button>
             </div>
             
             {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t animate-fade-in">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-4 border-t animate-fade-in">
                 <div className="space-y-2">
-                  <Label>Status</Label>
+                  <Label className="text-xs sm:text-sm">Status</Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
@@ -447,9 +458,9 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Responsabilidade</Label>
+                  <Label className="text-xs sm:text-sm">Responsabilidade</Label>
                   <Select value={filterResponsabilidade} onValueChange={setFilterResponsabilidade}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
@@ -461,10 +472,10 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Data Inicial</Label>
+                  <Label className="text-xs sm:text-sm">Data Inicial</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !filterDateFrom && "text-muted-foreground")}>
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal text-sm", !filterDateFrom && "text-muted-foreground")}>
                         <Calendar className="mr-2 h-4 w-4" />
                         {filterDateFrom ? format(filterDateFrom, "dd/MM/yyyy") : "Selecionar"}
                       </Button>
@@ -482,10 +493,10 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Data Final</Label>
+                  <Label className="text-xs sm:text-sm">Data Final</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !filterDateTo && "text-muted-foreground")}>
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal text-sm", !filterDateTo && "text-muted-foreground")}>
                         <Calendar className="mr-2 h-4 w-4" />
                         {filterDateTo ? format(filterDateTo, "dd/MM/yyyy") : "Selecionar"}
                       </Button>
@@ -506,284 +517,304 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
           </CardContent>
         </Card>
 
-        {/* Lista de Sinistros */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ocorrências Registradas ({filteredSinistros.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[600px] pr-4">
-              <div className="space-y-4">
-                {filteredSinistros.map((sinistro) => (
-                  <Card key={sinistro.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="pt-6" onClick={() => handleViewDetails(sinistro)}>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="outline" className="font-mono text-xs">
-                              {sinistro.protocolo}
-                            </Badge>
-                            <Badge className={`${statusColors[sinistro.status || "novo"]} text-white`}>
-                              {statusLabels[sinistro.status || "novo"]}
-                            </Badge>
-                            <Badge variant="secondary" className="capitalize">
-                              {sinistro.responsabilidade}
-                            </Badge>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              <span>{new Date(sinistro.data_hora).toLocaleDateString("pt-BR")}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                              <span>{sinistro.motorista}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span>Ônibus {sinistro.onibus}</span>
-                            </div>
-                          </div>
-
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {sinistro.local_acidente}
-                          </p>
-                        </div>
-
-                        <Button variant="ghost" size="sm">
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
+        {/* Incidents List */}
+        <div className="space-y-3">
+          {filteredSinistros.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhuma ocorrência encontrada</p>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredSinistros.map((sinistro) => (
+              <Card key={sinistro.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleViewDetails(sinistro)}>
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs sm:text-sm font-semibold text-primary">
+                          {sinistro.protocolo}
+                        </span>
+                        <Badge variant="outline" className={cn("text-xs text-white", statusColors[sinistro.status || "novo"])}>
+                          {statusLabels[sinistro.status || "novo"]}
+                        </Badge>
+                        {sinistro.prioridade === "urgente" && (
+                          <Badge variant="destructive" className="text-xs">Urgente</Badge>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-
-                {filteredSinistros.length === 0 && (
-                  <div className="text-center py-12">
-                    <AlertTriangle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">Nenhuma ocorrência encontrada</p>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <Calendar className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{format(new Date(sinistro.data_hora), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 truncate">
+                          <User className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{sinistro.motorista}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 truncate">
+                          <FileText className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">Ônibus: {sinistro.onibus}</span>
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{sinistro.local_acidente}</p>
+                    </div>
+                    
+                    <Button variant="ghost" size="icon" className="shrink-0 self-start">
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
                   </div>
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
 
-      {/* Modal de Detalhes */}
+      {/* Detail Dialog */}
       <Dialog open={!!selectedSinistro} onOpenChange={() => setSelectedSinistro(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="flex items-center gap-2">
-                Detalhes da Ocorrência
-                <Badge variant="outline" className="font-mono text-xs">
-                  {selectedSinistro?.protocolo}
-                </Badge>
-              </DialogTitle>
-              <Button variant="outline" size="sm" onClick={exportSingleToPDF}>
-                <Download className="h-4 w-4 mr-2" />
-                PDF
-              </Button>
-            </div>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <DialogTitle className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <span className="text-base sm:text-lg">Detalhes da Ocorrência</span>
+              {selectedSinistro && (
+                <span className="font-mono text-xs sm:text-sm text-primary">{selectedSinistro.protocolo}</span>
+              )}
+            </DialogTitle>
           </DialogHeader>
-
-          <ScrollArea className="h-[70vh]">
+          
+          <ScrollArea className="max-h-[calc(90vh-100px)]">
             {selectedSinistro && (
-              <div className="space-y-6 pr-4">
-                {/* Informações Básicas */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Informações do Incidente</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="font-medium">Data/Hora:</span>
-                        <p className="text-muted-foreground">
-                          {new Date(selectedSinistro.data_hora).toLocaleString("pt-BR")}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Responsabilidade:</span>
-                        <p className="text-muted-foreground capitalize">{selectedSinistro.responsabilidade}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Ônibus:</span>
-                        <p className="text-muted-foreground">{selectedSinistro.onibus}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Chapa:</span>
-                        <p className="text-muted-foreground">{selectedSinistro.chapa || "N/A"}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Motorista:</span>
-                      <p className="text-muted-foreground">{selectedSinistro.motorista}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Local:</span>
-                      <p className="text-muted-foreground">{selectedSinistro.local_acidente}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Descrição:</span>
-                      <p className="text-muted-foreground whitespace-pre-wrap">{selectedSinistro.descricao}</p>
-                    </div>
-                  </CardContent>
-                </Card>
+              <div className="px-4 sm:px-6 pb-6 space-y-4 sm:space-y-6">
+                {/* Status Badge */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={cn("text-white", statusColors[selectedSinistro.status || "novo"])}>
+                    {statusLabels[selectedSinistro.status || "novo"]}
+                  </Badge>
+                  <Badge variant="outline">
+                    {prioridadeLabels[selectedSinistro.prioridade || "media"]}
+                  </Badge>
+                  <Badge variant="outline">
+                    {selectedSinistro.responsabilidade === "motorista" ? "Resp: Motorista" : "Resp: Terceiro"}
+                  </Badge>
+                </div>
 
-                {/* Análise e Acompanhamento */}
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-base">Análise e Acompanhamento</CardTitle>
+                {/* Basic Info */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Data do Registro</Label>
+                      <p className="text-sm font-medium">{format(new Date(selectedSinistro.data_hora), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                    </div>
+                    {selectedSinistro.data_ocorrencia && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Data da Ocorrência</Label>
+                        <p className="text-sm font-medium">{format(new Date(selectedSinistro.data_ocorrencia), "dd/MM/yyyy", { locale: ptBR })}</p>
+                      </div>
+                    )}
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Local</Label>
+                      <p className="text-sm font-medium">{selectedSinistro.local_acidente}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 sm:space-y-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Motorista</Label>
+                      <p className="text-sm font-medium">{selectedSinistro.motorista}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Chapa</Label>
+                      <p className="text-sm font-medium">{selectedSinistro.chapa || "N/A"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Ônibus</Label>
+                      <p className="text-sm font-medium">{selectedSinistro.onibus}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <Label className="text-xs text-muted-foreground">Descrição</Label>
+                  <p className="text-sm mt-1 whitespace-pre-wrap bg-muted/50 p-3 rounded-lg">{selectedSinistro.descricao}</p>
+                </div>
+
+                {/* Vehicles Involved */}
+                {veiculos.length > 0 && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-2 block">Veículos Envolvidos ({veiculos.length})</Label>
+                    <div className="space-y-2">
+                      {veiculos.map((v, i) => (
+                        <div key={v.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                          <Car className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">
+                              {v.modelo || "Veículo"} {v.cor && `- ${v.cor}`}
+                            </p>
+                            {v.placa && <p className="text-xs text-muted-foreground">Placa: {v.placa}</p>}
+                            {v.observacoes && <p className="text-xs text-muted-foreground mt-1">{v.observacoes}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Witnesses */}
+                {testemunhas.length > 0 && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-2 block">Testemunhas ({testemunhas.length})</Label>
+                    <div className="space-y-2">
+                      {testemunhas.map((t, i) => (
+                        <div key={i} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                          <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{t.nome}</p>
+                            {t.telefone && (
+                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Phone className="h-3 w-3" />
+                                {t.telefone}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Images */}
+                {imagens.length > 0 && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-2 block">Fotografias ({imagens.length})</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {imagens.map((img, i) => (
+                        <a
+                          key={i}
+                          href={img.url_publica}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="aspect-square rounded-lg overflow-hidden bg-muted hover:opacity-80 transition-opacity"
+                        >
+                          <img
+                            src={img.url_publica}
+                            alt={img.nome_arquivo}
+                            className="w-full h-full object-cover"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Notes */}
+                {selectedSinistro.observacoes_complementares && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Observações Complementares</Label>
+                    <p className="text-sm mt-1 whitespace-pre-wrap bg-muted/50 p-3 rounded-lg">{selectedSinistro.observacoes_complementares}</p>
+                  </div>
+                )}
+
+                {/* Analysis Section */}
+                <div className="border-t pt-4 sm:pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <Label className="text-sm font-semibold">Análise do Gestor</Label>
                     {!editingAnalysis ? (
-                      <Button variant="outline" size="sm" onClick={() => setEditingAnalysis(true)}>
+                      <Button size="sm" variant="outline" onClick={() => setEditingAnalysis(true)} className="text-xs">
                         Editar
                       </Button>
                     ) : (
-                      <Button size="sm" onClick={handleSaveAnalysis}>
-                        <Save className="h-4 w-4 mr-2" />
+                      <Button size="sm" onClick={handleSaveAnalysis} className="text-xs">
+                        <Save className="h-3.5 w-3.5 mr-1" />
                         Salvar
                       </Button>
                     )}
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {editingAnalysis ? (
-                      <>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Status</Label>
-                            <Select 
-                              value={analysisData.status} 
-                              onValueChange={(v) => setAnalysisData(prev => ({ ...prev, status: v }))}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="novo">Novo</SelectItem>
-                                <SelectItem value="em_analise">Em Análise</SelectItem>
-                                <SelectItem value="aguardando_documentos">Aguardando Documentos</SelectItem>
-                                <SelectItem value="concluido">Concluído</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Prioridade</Label>
-                            <Select 
-                              value={analysisData.prioridade} 
-                              onValueChange={(v) => setAnalysisData(prev => ({ ...prev, prioridade: v }))}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="baixa">Baixa</SelectItem>
-                                <SelectItem value="media">Média</SelectItem>
-                                <SelectItem value="alta">Alta</SelectItem>
-                                <SelectItem value="urgente">Urgente</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Analista Responsável</Label>
-                          <Input
-                            value={analysisData.analista}
-                            onChange={(e) => setAnalysisData(prev => ({ ...prev, analista: e.target.value }))}
-                            placeholder="Nome do analista"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Parecer da Análise</Label>
-                          <Textarea
-                            value={analysisData.parecer_analista}
-                            onChange={(e) => setAnalysisData(prev => ({ ...prev, parecer_analista: e.target.value }))}
-                            placeholder="Insira o parecer da análise..."
-                            rows={4}
-                          />
-                        </div>
-                      </>
-                    ) : (
-                      <div className="space-y-3 text-sm">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <span className="font-medium">Status:</span>
-                            <div className="mt-1">
-                              <Badge className={`${statusColors[selectedSinistro.status || "novo"]} text-white`}>
-                                {statusLabels[selectedSinistro.status || "novo"]}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div>
-                            <span className="font-medium">Prioridade:</span>
-                            <p className="text-muted-foreground capitalize">
-                              {prioridadeLabels[selectedSinistro.prioridade || "media"]}
-                            </p>
-                          </div>
-                        </div>
-                        <div>
-                          <span className="font-medium">Analista:</span>
-                          <p className="text-muted-foreground">{selectedSinistro.analista || "Não atribuído"}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">Parecer:</span>
-                          <p className="text-muted-foreground whitespace-pre-wrap">
-                            {selectedSinistro.parecer_analista || "Nenhum parecer registrado"}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                  </div>
 
-                {/* Testemunhas */}
-                {testemunhas.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Testemunhas</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {testemunhas.map((testemunha, index) => (
-                          <div key={index} className="flex justify-between text-sm p-2 border rounded">
-                            <span>{testemunha.nome}</span>
-                            <span className="text-muted-foreground">{testemunha.telefone}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Status</Label>
+                      {editingAnalysis ? (
+                        <Select value={analysisData.status} onValueChange={(v) => setAnalysisData({...analysisData, status: v})}>
+                          <SelectTrigger className="text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="novo">Novo</SelectItem>
+                            <SelectItem value="em_analise">Em Análise</SelectItem>
+                            <SelectItem value="aguardando_documentos">Aguardando Docs</SelectItem>
+                            <SelectItem value="concluido">Concluído</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <p className="text-sm">{statusLabels[analysisData.status] || analysisData.status}</p>
+                      )}
+                    </div>
 
-                {/* Fotos */}
-                {imagens.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Fotos da Ocorrência</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {imagens.map((imagem, index) => (
-                          <a
-                            key={index}
-                            href={imagem.url_publica}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="relative aspect-square rounded-lg overflow-hidden border hover:opacity-90 transition-opacity"
-                          >
-                            <img
-                              src={imagem.url_publica}
-                              alt={imagem.nome_arquivo}
-                              className="w-full h-full object-cover"
-                            />
-                          </a>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                      {editingAnalysis ? (
+                        <Select value={analysisData.prioridade} onValueChange={(v) => setAnalysisData({...analysisData, prioridade: v})}>
+                          <SelectTrigger className="text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="baixa">Baixa</SelectItem>
+                            <SelectItem value="media">Média</SelectItem>
+                            <SelectItem value="alta">Alta</SelectItem>
+                            <SelectItem value="urgente">Urgente</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <p className="text-sm">{prioridadeLabels[analysisData.prioridade] || analysisData.prioridade}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label className="text-xs text-muted-foreground">Analista Responsável</Label>
+                      {editingAnalysis ? (
+                        <Input
+                          value={analysisData.analista}
+                          onChange={(e) => setAnalysisData({...analysisData, analista: e.target.value})}
+                          placeholder="Nome do analista"
+                          className="text-sm"
+                        />
+                      ) : (
+                        <p className="text-sm">{analysisData.analista || "Não atribuído"}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label className="text-xs text-muted-foreground">Parecer</Label>
+                      {editingAnalysis ? (
+                        <Textarea
+                          value={analysisData.parecer_analista}
+                          onChange={(e) => setAnalysisData({...analysisData, parecer_analista: e.target.value})}
+                          placeholder="Digite o parecer da análise..."
+                          rows={4}
+                          className="text-sm"
+                        />
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap bg-muted/50 p-3 rounded-lg min-h-[80px]">
+                          {analysisData.parecer_analista || "Nenhum parecer registrado"}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row gap-2 pt-4">
+                  <Button onClick={exportSingleToPDF} variant="outline" className="flex-1 text-sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar PDF
+                  </Button>
+                  <Button onClick={() => setSelectedSinistro(null)} variant="outline" className="flex-1 text-sm">
+                    Fechar
+                  </Button>
+                </div>
               </div>
             )}
           </ScrollArea>

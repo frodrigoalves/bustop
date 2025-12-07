@@ -133,7 +133,7 @@ CREATE TABLE public.sinistros (
     data_ocorrencia timestamp with time zone,
     observacoes_complementares text,
     CONSTRAINT sinistros_prioridade_check CHECK ((prioridade = ANY (ARRAY['baixa'::text, 'media'::text, 'alta'::text, 'urgente'::text]))),
-    CONSTRAINT sinistros_responsabilidade_check CHECK (((responsabilidade)::text = ANY ((ARRAY['motorista'::character varying, 'terceiro'::character varying])::text[]))),
+    CONSTRAINT sinistros_responsabilidade_check CHECK (((responsabilidade)::text = ANY (ARRAY[('motorista'::character varying)::text, ('terceiro'::character varying)::text]))),
     CONSTRAINT sinistros_status_check CHECK ((status = ANY (ARRAY['novo'::text, 'em_analise'::text, 'aguardando_documentos'::text, 'concluido'::text])))
 );
 

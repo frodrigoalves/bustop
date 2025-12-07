@@ -4,7 +4,6 @@ import { LoginDialog } from "@/components/LoginDialog";
 import { Dashboard } from "@/components/Dashboard";
 import { Button } from "@/components/ui/button";
 import { Shield } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -15,19 +14,17 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background transition-colors duration-300">
-      {/* Header with discrete controls */}
-      <div className="fixed top-4 left-4 right-4 z-50 flex items-center justify-between">
+    <div className="min-h-screen bg-white">
+      {/* Header with discrete login button */}
+      <div className="fixed top-4 left-4 z-50">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={() => setShowLogin(true)} 
-          className="opacity-40 hover:opacity-100 transition-all duration-300 h-7 w-7 rounded-full border border-border/50 bg-background/50 backdrop-blur-sm hover:bg-accent/50"
+          className="opacity-40 hover:opacity-100 transition-all duration-300 h-7 w-7 rounded-full border border-border/50 bg-white/50 backdrop-blur-sm hover:bg-accent/50"
         >
           <Shield className="h-3.5 w-3.5" strokeWidth={1.5} />
         </Button>
-        
-        <ThemeToggle />
       </div>
 
       {/* Main form */}

@@ -203,6 +203,53 @@ export type Database = {
           },
         ]
       }
+      veiculos_envolvidos: {
+        Row: {
+          cor: string | null
+          created_at: string | null
+          documento_path: string | null
+          documento_url: string | null
+          id: number
+          modelo: string | null
+          observacoes: string | null
+          placa: string | null
+          sinistro_id: number | null
+          tipo: string
+        }
+        Insert: {
+          cor?: string | null
+          created_at?: string | null
+          documento_path?: string | null
+          documento_url?: string | null
+          id?: number
+          modelo?: string | null
+          observacoes?: string | null
+          placa?: string | null
+          sinistro_id?: number | null
+          tipo?: string
+        }
+        Update: {
+          cor?: string | null
+          created_at?: string | null
+          documento_path?: string | null
+          documento_url?: string | null
+          id?: number
+          modelo?: string | null
+          observacoes?: string | null
+          placa?: string | null
+          sinistro_id?: number | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veiculos_envolvidos_sinistro_id_fkey"
+            columns: ["sinistro_id"]
+            isOneToOne: false
+            referencedRelation: "sinistros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

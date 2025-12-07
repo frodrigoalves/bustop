@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, X, ChevronDown, ChevronUp, CalendarIcon, FileText, Mic, FileImage } from "lucide-react";
+import { Plus, X, CalendarIcon, FileText, Mic, FileImage, Car } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -30,8 +30,15 @@ interface Witness {
   telefone: string;
 }
 
+interface VeiculoEnvolvido {
+  placa: string;
+  modelo: string;
+  cor: string;
+  observacoes: string;
+}
+
 interface AdditionalDoc {
-  tipo: "bo" | "cnh" | "documento" | "audio" | "outro";
+  tipo: "bo" | "cnh" | "documento_veiculo" | "audio" | "outro";
   file: File;
 }
 
@@ -51,6 +58,7 @@ export const IncidentForm = () => {
     nome: "",
     telefone: ""
   }]);
+  const [veiculosEnvolvidos, setVeiculosEnvolvidos] = useState<VeiculoEnvolvido[]>([]);
   const [images, setImages] = useState<{
     frontal?: File;
     lateral?: File;
@@ -65,8 +73,6 @@ export const IncidentForm = () => {
   }>({});
   const [additionalDocs, setAdditionalDocs] = useState<AdditionalDoc[]>([]);
   const [loading, setLoading] = useState(false);
-  const [photoSectionExpanded, setPhotoSectionExpanded] = useState(false);
-  const [additionalSectionExpanded, setAdditionalSectionExpanded] = useState(false);
 
   // Cleanup preview URLs on unmount to prevent memory leaks
   useEffect(() => {
@@ -92,6 +98,25 @@ export const IncidentForm = () => {
     const newWitnesses = [...witnesses];
     newWitnesses[index][field] = value;
     setWitnesses(newWitnesses);
+  };
+
+  const handleAddVeiculo = () => {
+    setVeiculosEnvolvidos([...veiculosEnvolvidos, {
+      placa: "",
+      modelo: "",
+      cor: "",
+      observacoes: ""
+    }]);
+  };
+
+  const handleRemoveVeiculo = (index: number) => {
+    setVeiculosEnvolvidos(veiculosEnvolvidos.filter((_, i) => i !== index));
+  };
+
+  const handleVeiculoChange = (index: number, field: keyof VeiculoEnvolvido, value: string) => {
+    const newVeiculos = [...veiculosEnvolvidos];
+    newVeiculos[index][field] = value;
+    setVeiculosEnvolvidos(newVeiculos);
   };
   
   const handlePhotoSelect = (type: keyof typeof images, file: File) => {
@@ -185,6 +210,20 @@ export const IncidentForm = () => {
         if (witnessError) throw witnessError;
       }
 
+      // Insert vehicles involved
+      const validVeiculos = veiculosEnvolvidos.filter(v => v.placa || v.modelo);
+      if (validVeiculos.length > 0) {
+        const { error: veiculoError } = await supabase.from("veiculos_envolvidos").insert(validVeiculos.map(v => ({
+          sinistro_id: sinistro.id,
+          tipo: "terceiro",
+          placa: v.placa || null,
+          modelo: v.modelo || null,
+          cor: v.cor || null,
+          observacoes: v.observacoes || null
+        })));
+        if (veiculoError) throw veiculoError;
+      }
+
       // Upload images
       const imageEntries = Object.entries(images).filter(([_, file]) => file);
       for (const [type, file] of imageEntries) {
@@ -235,11 +274,10 @@ export const IncidentForm = () => {
       });
       setDataOcorrencia(undefined);
       setWitnesses([{ nome: "", telefone: "" }]);
+      setVeiculosEnvolvidos([]);
       setImages({});
       setImagePreviews({});
       setAdditionalDocs([]);
-      setPhotoSectionExpanded(false);
-      setAdditionalSectionExpanded(false);
     } catch (error: any) {
       console.error("Error submitting form:", error);
       if (error instanceof z.ZodError) {
@@ -255,7 +293,7 @@ export const IncidentForm = () => {
   const docTypeLabels: Record<AdditionalDoc["tipo"], string> = {
     bo: "B.O.",
     cnh: "CNH",
-    documento: "Documento",
+    documento_veiculo: "Doc. Veículo",
     audio: "Áudio",
     outro: "Outro"
   };
@@ -273,7 +311,7 @@ export const IncidentForm = () => {
       </div>
 
       {/* Glass Card */}
-      <div className="glass rounded-2xl p-5 sm:p-6 md:p-8 space-y-6">
+      <div className="glass rounded-2xl p-4 sm:p-6 md:p-8 space-y-6">
         {/* Data da Ocorrência */}
         <div className="space-y-2">
           <Label className="text-sm font-medium text-foreground">
@@ -402,6 +440,78 @@ export const IncidentForm = () => {
           </RadioGroup>
         </div>
 
+        {/* Veículos Envolvidos */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium text-foreground">Veículos Envolvidos</Label>
+              <span className="text-xs text-muted-foreground/60">(terceiros)</span>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={handleAddVeiculo}
+              className="h-8 text-xs"
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Adicionar Veículo
+            </Button>
+          </div>
+          
+          {veiculosEnvolvidos.length === 0 && (
+            <p className="text-xs text-muted-foreground/60 text-center py-3 border border-dashed border-border/50 rounded-xl">
+              Clique em "Adicionar Veículo" para registrar veículos de terceiros envolvidos
+            </p>
+          )}
+
+          {veiculosEnvolvidos.map((veiculo, index) => (
+            <div key={index} className="space-y-3 p-4 rounded-xl border border-border/50 bg-input/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Car className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Veículo {index + 1}</span>
+                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleRemoveVeiculo(index)}
+                  className="h-8 w-8"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Input
+                  placeholder="Placa"
+                  value={veiculo.placa}
+                  onChange={e => handleVeiculoChange(index, "placa", e.target.value)}
+                  className="h-10 bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
+                />
+                <Input
+                  placeholder="Modelo"
+                  value={veiculo.modelo}
+                  onChange={e => handleVeiculoChange(index, "modelo", e.target.value)}
+                  className="h-10 bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
+                />
+                <Input
+                  placeholder="Cor"
+                  value={veiculo.cor}
+                  onChange={e => handleVeiculoChange(index, "cor", e.target.value)}
+                  className="h-10 bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
+                />
+              </div>
+              <Input
+                placeholder="Observações sobre o veículo"
+                value={veiculo.observacoes}
+                onChange={e => handleVeiculoChange(index, "observacoes", e.target.value)}
+                className="h-10 bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
+              />
+            </div>
+          ))}
+        </div>
+
         {/* Testemunhas */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -466,37 +576,22 @@ export const IncidentForm = () => {
           />
         </div>
 
-        {/* Upload de Fotos */}
+        {/* Upload de Fotos - Always Expanded */}
         <div className="space-y-3">
-          <button
-            type="button"
-            onClick={() => setPhotoSectionExpanded(!photoSectionExpanded)}
-            className="w-full flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-primary/50 bg-input/30 transition-all duration-300 group active:scale-[0.99]"
-          >
-            <div className="flex items-center gap-3">
-              <Label className="text-sm font-medium text-foreground cursor-pointer">
-                Fotografias
-              </Label>
-              <span className={`text-xs px-2 py-0.5 rounded-full transition-all duration-300 ${
-                imageCount === 4 
-                  ? "bg-primary/20 text-primary" 
-                  : "bg-muted text-muted-foreground"
-              }`}>
-                {imageCount}/4
-              </span>
-            </div>
-            {photoSectionExpanded ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            )}
-          </button>
+          <div className="flex items-center gap-3">
+            <Label className="text-sm font-medium text-foreground">
+              Fotografias
+            </Label>
+            <span className={`text-xs px-2 py-0.5 rounded-full transition-all duration-300 ${
+              imageCount === 4 
+                ? "bg-primary/20 text-primary" 
+                : "bg-muted text-muted-foreground"
+            }`}>
+              {imageCount}/4
+            </span>
+          </div>
 
-          <div className={`grid grid-cols-2 gap-3 transition-all duration-500 ${
-            photoSectionExpanded 
-              ? "opacity-100 max-h-[2000px]" 
-              : "opacity-0 max-h-0 overflow-hidden"
-          }`}>
+          <div className="grid grid-cols-2 gap-3">
             <PhotoGuide
               type="frontal"
               onFileSelect={file => handlePhotoSelect("frontal", file)}
@@ -523,127 +618,110 @@ export const IncidentForm = () => {
             />
           </div>
 
-          {photoSectionExpanded && imageCount < 4 && (
-            <p className="text-xs text-muted-foreground/70 text-center animate-fade-in">
+          {imageCount < 4 && (
+            <p className="text-xs text-muted-foreground/70 text-center">
               Toque em cada campo para capturar
             </p>
           )}
         </div>
 
-        {/* Informações Complementares - Expandable Section */}
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={() => setAdditionalSectionExpanded(!additionalSectionExpanded)}
-            className="w-full flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-primary/50 bg-input/30 transition-all duration-300 group active:scale-[0.99]"
-          >
-            <div className="flex items-center gap-3">
-              <Label className="text-sm font-medium text-foreground cursor-pointer">
-                Informações Complementares
-              </Label>
-              <span className="text-xs text-muted-foreground/60">(opcional)</span>
-            </div>
-            {additionalSectionExpanded ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            )}
-          </button>
+        {/* Informações Complementares - Always Expanded */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Label className="text-sm font-medium text-foreground">
+              Informações Complementares
+            </Label>
+            <span className="text-xs text-muted-foreground/60">(opcional)</span>
+          </div>
 
-          <div className={`space-y-4 transition-all duration-500 ${
-            additionalSectionExpanded 
-              ? "opacity-100 max-h-[2000px]" 
-              : "opacity-0 max-h-0 overflow-hidden"
-          }`}>
-            {/* Document upload buttons */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {/* B.O. Upload */}
-              <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
-                <FileText className="h-6 w-6 text-muted-foreground mb-2" />
-                <span className="text-xs font-medium">B.O.</span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => handleAdditionalDocSelect("bo", e)}
-                  className="hidden"
-                />
-              </label>
-
-              {/* CNH Upload */}
-              <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
-                <FileImage className="h-6 w-6 text-muted-foreground mb-2" />
-                <span className="text-xs font-medium">CNH</span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => handleAdditionalDocSelect("cnh", e)}
-                  className="hidden"
-                />
-              </label>
-
-              {/* Document Upload */}
-              <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
-                <FileText className="h-6 w-6 text-muted-foreground mb-2" />
-                <span className="text-xs font-medium">Documento</span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                  onChange={(e) => handleAdditionalDocSelect("documento", e)}
-                  className="hidden"
-                />
-              </label>
-
-              {/* Audio Upload */}
-              <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
-                <Mic className="h-6 w-6 text-muted-foreground mb-2" />
-                <span className="text-xs font-medium">Áudio</span>
-                <input
-                  type="file"
-                  accept="audio/*"
-                  onChange={(e) => handleAdditionalDocSelect("audio", e)}
-                  className="hidden"
-                />
-              </label>
-            </div>
-
-            {/* Uploaded docs list */}
-            {additionalDocs.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Arquivos anexados:</Label>
-                {additionalDocs.map((doc, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs font-medium text-primary">{docTypeLabels[doc.tipo]}</span>
-                      <span className="text-xs text-muted-foreground truncate">{doc.file.name}</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveAdditionalDoc(index)}
-                      className="h-6 w-6 shrink-0"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Observações complementares */}
-            <div className="space-y-2">
-              <Label htmlFor="observacoes" className="text-sm font-medium text-foreground">
-                Observações Adicionais
-              </Label>
-              <Textarea
-                id="observacoes"
-                value={formData.observacoes_complementares}
-                onChange={e => setFormData({ ...formData, observacoes_complementares: e.target.value })}
-                placeholder="Informações adicionais que possam ajudar na análise..."
-                rows={3}
-                className="resize-none bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
+          {/* Document upload buttons */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* B.O. Upload */}
+            <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
+              <FileText className="h-6 w-6 text-muted-foreground mb-2" />
+              <span className="text-xs font-medium text-center">B.O.</span>
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => handleAdditionalDocSelect("bo", e)}
+                className="hidden"
               />
+            </label>
+
+            {/* CNH Upload */}
+            <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
+              <FileImage className="h-6 w-6 text-muted-foreground mb-2" />
+              <span className="text-xs font-medium text-center">CNH</span>
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => handleAdditionalDocSelect("cnh", e)}
+                className="hidden"
+              />
+            </label>
+
+            {/* Document Veículo Upload */}
+            <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
+              <Car className="h-6 w-6 text-muted-foreground mb-2" />
+              <span className="text-xs font-medium text-center">Documento Veículo</span>
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => handleAdditionalDocSelect("documento_veiculo", e)}
+                className="hidden"
+              />
+            </label>
+
+            {/* Audio Upload */}
+            <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
+              <Mic className="h-6 w-6 text-muted-foreground mb-2" />
+              <span className="text-xs font-medium text-center">Áudio</span>
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={(e) => handleAdditionalDocSelect("audio", e)}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          {/* Uploaded docs list */}
+          {additionalDocs.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Arquivos anexados:</Label>
+              {additionalDocs.map((doc, index) => (
+                <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs font-medium text-primary">{docTypeLabels[doc.tipo]}</span>
+                    <span className="text-xs text-muted-foreground truncate">{doc.file.name}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveAdditionalDoc(index)}
+                    className="h-6 w-6 shrink-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
             </div>
+          )}
+
+          {/* Observações complementares */}
+          <div className="space-y-2">
+            <Label htmlFor="observacoes" className="text-sm font-medium text-foreground">
+              Observações Adicionais
+            </Label>
+            <Textarea
+              id="observacoes"
+              value={formData.observacoes_complementares}
+              onChange={e => setFormData({ ...formData, observacoes_complementares: e.target.value })}
+              placeholder="Informações adicionais que possam ajudar na análise..."
+              rows={3}
+              className="resize-none bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
+            />
           </div>
         </div>
       </div>

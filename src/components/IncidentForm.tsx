@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { PhotoGuide } from "./PhotoGuide";
+import { AudioRecorder } from "./AudioRecorder";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -446,7 +447,7 @@ export const IncidentForm = () => {
         </div>
 
         {/* Descrição */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <Label htmlFor="descricao" className="text-sm font-medium text-foreground">
             Descrição
           </Label>
@@ -454,10 +455,14 @@ export const IncidentForm = () => {
             id="descricao"
             value={formData.descricao}
             onChange={e => setFormData({ ...formData, descricao: e.target.value })}
-            placeholder="Descreva o ocorrido com detalhes..."
+            placeholder="Descreva o ocorrido com detalhes ou use o gravador de áudio abaixo..."
             rows={5}
             className="resize-none bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
             required
+          />
+          <AudioRecorder
+            onTranscription={(text) => setFormData({ ...formData, descricao: text })}
+            currentText={formData.descricao}
           />
         </div>
 

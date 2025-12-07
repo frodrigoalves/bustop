@@ -107,43 +107,49 @@ export const PhotoGuide = ({ type, onFileSelect, imagePreview, onRemove }: Photo
         </div>
       ) : (
         /* Upload Mode */
-        <button
-          type="button"
-          onClick={handleClick}
-          className="relative w-full aspect-[4/3] rounded-xl border border-dashed transition-all duration-300 overflow-hidden border-border/50 hover:border-primary/50 bg-input/30 active:scale-[0.98]"
-        >
-          {/* Animation Container */}
-          <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${
-            isAnimating ? "opacity-100" : "opacity-0"
-          }`}>
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20">
-              {/* Camera Icon Animation */}
-              <div className="absolute inset-0 animate-rotate-guide">
-                <Camera className="w-full h-full text-primary/50" strokeWidth={1} />
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={handleClick}
+            className="relative w-full aspect-[4/3] rounded-xl border border-dashed transition-all duration-300 overflow-hidden border-border/50 hover:border-primary/50 bg-input/30 active:scale-[0.98]"
+          >
+            {/* Animation Container */}
+            <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${
+              isAnimating ? "opacity-100" : "opacity-0"
+            }`}>
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20">
+                {/* Camera Icon Animation */}
+                <div className="absolute inset-0 animate-rotate-guide">
+                  <Camera className="w-full h-full text-primary/50" strokeWidth={1} />
+                </div>
+                {/* Pulse Ring */}
+                <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse-soft" />
               </div>
-              {/* Pulse Ring */}
-              <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse-soft" />
             </div>
-          </div>
 
-          {/* Static Content */}
-          <div className={`absolute inset-0 flex flex-col items-center justify-center p-3 transition-all duration-500 ${
-            isAnimating ? "opacity-0" : "opacity-100"
-          }`}>
-            <Camera className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground/60 mb-2 group-hover:text-primary/60 transition-colors duration-300" strokeWidth={1.5} />
-            <h3 className="text-xs sm:text-sm font-medium text-foreground mb-0.5">{info.title}</h3>
-            <p className="text-[10px] sm:text-xs text-muted-foreground/60 text-center leading-tight">{info.description}</p>
-          </div>
-
-          {/* Instruction Overlay */}
-          {isAnimating && (
-            <div className="absolute bottom-0 left-0 right-0 bg-primary/90 backdrop-blur-sm p-2 sm:p-3 animate-slide-in">
-              <p className="text-[10px] sm:text-xs text-primary-foreground text-center font-medium leading-tight">
-                {info.instruction}
-              </p>
+            {/* Static Content */}
+            <div className={`absolute inset-0 flex flex-col items-center justify-center p-3 transition-all duration-500 ${
+              isAnimating ? "opacity-0" : "opacity-100"
+            }`}>
+              <Camera className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground/60 mb-2 group-hover:text-primary/60 transition-colors duration-300" strokeWidth={1.5} />
+              <h3 className="text-xs sm:text-sm font-medium text-foreground mb-0.5">{info.title}</h3>
+              <p className="text-[10px] sm:text-xs text-muted-foreground/60 text-center leading-tight">{info.description}</p>
             </div>
-          )}
-        </button>
+
+            {/* Instruction Overlay */}
+            {isAnimating && (
+              <div className="absolute bottom-0 left-0 right-0 bg-primary/90 backdrop-blur-sm p-2 sm:p-3 animate-slide-in">
+                <p className="text-[10px] sm:text-xs text-primary-foreground text-center font-medium leading-tight">
+                  {info.instruction}
+                </p>
+              </div>
+            )}
+          </button>
+          {/* Instruction text below upload button */}
+          <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight px-1">
+            {info.instruction}
+          </p>
+        </div>
       )}
     </div>
   );

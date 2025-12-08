@@ -7,7 +7,7 @@ const Index = () => {
     <div className="min-h-screen bg-white">
       {/* Header with discrete login button */}
       <div className="fixed top-4 left-4 z-50">
-        <Link 
+        <Link
           to="/auth"
           className="flex items-center justify-center opacity-40 hover:opacity-100 transition-all duration-300 h-7 w-7 rounded-full border border-border/50 bg-white/50 backdrop-blur-sm hover:bg-accent/50"
         >
@@ -21,9 +21,9 @@ const Index = () => {
       </div>
 
       {/* Footer credit */}
-      <a 
-        href="https://rodrigo.run" 
-        target="_blank" 
+      <a
+        href="https://rodrigo.run"
+        target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-4 right-4 text-xs text-muted-foreground opacity-40 hover:opacity-100 transition-opacity duration-300"
       >

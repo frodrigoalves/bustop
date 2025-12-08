@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 
 interface AudioRecorderProps {
   onTranscription: (text: string) => void;
+  onAudioReady?: (blob: Blob | null) => void;
   currentText: string;
 }
 
-export const AudioRecorder = ({ onTranscription, currentText }: AudioRecorderProps) => {
+export const AudioRecorder = ({ onTranscription, onAudioReady, currentText }: AudioRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -33,7 +34,7 @@ export const AudioRecorder = ({ onTranscription, currentText }: AudioRecorderPro
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = "pt-BR";
       
-      recognitionRef.current.onresult = (event) => {
+      recognitionRef.current.onresult = (event: any) => {
         let interim = "";
         let final = "";
         
@@ -52,7 +53,7 @@ export const AudioRecorder = ({ onTranscription, currentText }: AudioRecorderPro
         setInterimTranscript(interim);
       };
 
-      recognitionRef.current.onerror = (event) => {
+      recognitionRef.current.onerror = (event: any) => {
         console.error("Speech recognition error:", event.error);
         if (event.error === "not-allowed") {
           setError("Permissão de microfone negada.");
@@ -74,6 +75,13 @@ export const AudioRecorder = ({ onTranscription, currentText }: AudioRecorderPro
       onTranscription(currentText ? `${currentText} ${transcription}` : transcription);
     }
   }, [transcription]);
+
+  // Notify parent when audio blob changes
+  useEffect(() => {
+    if (onAudioReady) {
+      onAudioReady(audioBlob);
+    }
+  }, [audioBlob, onAudioReady]);
 
   const startRecording = async () => {
     try {
@@ -289,7 +297,7 @@ export const AudioRecorder = ({ onTranscription, currentText }: AudioRecorderPro
       {!isRecording && !audioURL && !error && (
         <p className="text-xs text-muted-foreground">
           {isSpeechRecognitionSupported 
-            ? "Grave um áudio descrevendo a ocorrência. A transcrição será adicionada automaticamente."
+            ? "Grave um áudio descrevendo a ocorrência. A transcrição será adicionada e o áudio será salvo automaticamente."
             : "Grave um áudio descrevendo a ocorrência. (Transcrição não disponível neste navegador)"}
         </p>
       )}

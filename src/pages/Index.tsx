@@ -38,6 +38,16 @@ const Index = () => {
         onOpenChange={setShowLogin} 
         onSuccess={() => setIsAuthenticated(true)} 
       />
+
+      {/* Footer credit */}
+      <a 
+        href="https://rodrigo.run" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-4 right-4 text-xs text-muted-foreground opacity-40 hover:opacity-100 transition-opacity duration-300"
+      >
+        DEV - rodrigo.run
+      </a>
     </div>
   );
 };

@@ -492,18 +492,27 @@ export const IncidentForm = () => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <Input
+                  id={`veiculo-placa-${index}`}
+                  name={`veiculo-placa-${index}`}
+                  aria-label={`Placa do veículo ${index + 1}`}
                   placeholder="Placa"
                   value={veiculo.placa}
                   onChange={e => handleVeiculoChange(index, "placa", e.target.value)}
                   className="h-10 bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
                 />
                 <Input
+                  id={`veiculo-modelo-${index}`}
+                  name={`veiculo-modelo-${index}`}
+                  aria-label={`Modelo do veículo ${index + 1}`}
                   placeholder="Modelo"
                   value={veiculo.modelo}
                   onChange={e => handleVeiculoChange(index, "modelo", e.target.value)}
                   className="h-10 bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
                 />
                 <Input
+                  id={`veiculo-cor-${index}`}
+                  name={`veiculo-cor-${index}`}
+                  aria-label={`Cor do veículo ${index + 1}`}
                   placeholder="Cor"
                   value={veiculo.cor}
                   onChange={e => handleVeiculoChange(index, "cor", e.target.value)}
@@ -511,6 +520,9 @@ export const IncidentForm = () => {
                 />
               </div>
               <Input
+                id={`veiculo-observacoes-${index}`}
+                name={`veiculo-observacoes-${index}`}
+                aria-label={`Observações do veículo ${index + 1}`}
                 placeholder="Observações sobre o veículo"
                 value={veiculo.observacoes}
                 onChange={e => handleVeiculoChange(index, "observacoes", e.target.value)}
@@ -538,12 +550,18 @@ export const IncidentForm = () => {
           {witnesses.map((witness, index) => (
             <div key={index} className="flex gap-2 sm:gap-3">
               <Input
+                id={`testemunha-nome-${index}`}
+                name={`testemunha-nome-${index}`}
+                aria-label={`Nome da testemunha ${index + 1}`}
                 placeholder="Nome"
                 value={witness.nome}
                 onChange={e => handleWitnessChange(index, "nome", e.target.value)}
                 className="flex-1 h-11 bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
               />
               <Input
+                id={`testemunha-telefone-${index}`}
+                name={`testemunha-telefone-${index}`}
+                aria-label={`Telefone da testemunha ${index + 1}`}
                 placeholder="Telefone"
                 value={witness.telefone}
                 onChange={e => handleWitnessChange(index, "telefone", e.target.value)}
@@ -646,10 +664,12 @@ export const IncidentForm = () => {
           {/* Document upload buttons */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {/* B.O. Upload */}
-            <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
+            <label htmlFor="doc-upload-bo" className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
               <FileText className="h-6 w-6 text-muted-foreground mb-2" />
               <span className="text-xs font-medium text-center">B.O.</span>
               <input
+                id="doc-upload-bo"
+                name="doc-upload-bo"
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={(e) => handleAdditionalDocSelect("bo", e)}
@@ -658,10 +678,12 @@ export const IncidentForm = () => {
             </label>
 
             {/* CNH Upload */}
-            <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
+            <label htmlFor="doc-upload-cnh" className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
               <FileImage className="h-6 w-6 text-muted-foreground mb-2" />
               <span className="text-xs font-medium text-center">CNH</span>
               <input
+                id="doc-upload-cnh"
+                name="doc-upload-cnh"
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={(e) => handleAdditionalDocSelect("cnh", e)}
@@ -670,10 +692,12 @@ export const IncidentForm = () => {
             </label>
 
             {/* Document Veículo Upload */}
-            <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
+            <label htmlFor="doc-upload-documento-veiculo" className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
               <Car className="h-6 w-6 text-muted-foreground mb-2" />
               <span className="text-xs font-medium text-center">Documento Veículo</span>
               <input
+                id="doc-upload-documento-veiculo"
+                name="doc-upload-documento-veiculo"
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                 onChange={(e) => handleAdditionalDocSelect("documento_veiculo", e)}
@@ -682,10 +706,12 @@ export const IncidentForm = () => {
             </label>
 
             {/* Audio Upload */}
-            <label className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
+            <label htmlFor="doc-upload-audio" className="flex flex-col items-center justify-center p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 bg-input/30 cursor-pointer transition-all">
               <Mic className="h-6 w-6 text-muted-foreground mb-2" />
               <span className="text-xs font-medium text-center">Áudio</span>
               <input
+                id="doc-upload-audio"
+                name="doc-upload-audio"
                 type="file"
                 accept="audio/*"
                 onChange={(e) => handleAdditionalDocSelect("audio", e)}

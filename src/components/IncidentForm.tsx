@@ -50,7 +50,6 @@ export const IncidentForm = () => {
     chapa: "",
     responsabilidade: "terceiro",
     descricao: "",
-    cep: "",
     observacoes_complementares: ""
   });
   const [dataOcorrencia, setDataOcorrencia] = useState<Date | undefined>(undefined);
@@ -195,7 +194,6 @@ export const IncidentForm = () => {
         chapa: formData.chapa || null,
         responsabilidade: formData.responsabilidade,
         descricao: formData.descricao,
-        cep: formData.cep || null,
         data_ocorrencia: dataOcorrencia?.toISOString() || null,
         observacoes_complementares: formData.observacoes_complementares || null
       }).select().single();
@@ -291,7 +289,6 @@ export const IncidentForm = () => {
         chapa: "",
         responsabilidade: "terceiro",
         descricao: "",
-        cep: "",
         observacoes_complementares: ""
       });
       setDataOcorrencia(undefined);
@@ -366,34 +363,22 @@ export const IncidentForm = () => {
           </Popover>
         </div>
 
-        {/* Local, CEP e Ônibus */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="local" className="text-sm font-medium text-foreground">
-              Local
-            </Label>
-            <Input
-              id="local"
-              value={formData.local_acidente}
-              onChange={e => setFormData({ ...formData, local_acidente: e.target.value })}
-              placeholder="Endereço ou referência"
-              className="h-11 bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cep" className="text-sm font-medium text-foreground">
-              CEP <span className="text-muted-foreground/50">(opcional)</span>
-            </Label>
-            <Input
-              id="cep"
-              value={formData.cep}
-              onChange={e => setFormData({ ...formData, cep: e.target.value })}
-              placeholder="00000-000"
-              className="h-11 bg-input/50 border-border/50 placeholder:text-muted-foreground/50"
-              maxLength={9}
-            />
-          </div>
+        {/* Local do Acidente */}
+        <div className="space-y-2">
+          <Label htmlFor="local" className="text-sm font-medium text-foreground">
+            Local do Acidente
+          </Label>
+          <Textarea
+            id="local"
+            value={formData.local_acidente}
+            onChange={e => setFormData({ ...formData, local_acidente: e.target.value })}
+            placeholder="Ex: Av. Brasil, 1500, próximo ao posto Shell, em frente ao supermercado Extra - Bairro Centro, Cidade - UF"
+            className="min-h-[80px] bg-input/50 border-border/50 placeholder:text-muted-foreground/50 resize-none"
+            required
+          />
+          <p className="text-xs text-muted-foreground/70">
+            Inclua rua, número, pontos de referência, bairro e cidade para facilitar a localização
+          </p>
         </div>
 
         {/* Ônibus */}

@@ -229,9 +229,12 @@ export const IncidentForm = () => {
         if (!file) continue;
         const filePath = `${protocolo}/${Date.now()}-${type}-${file.name}`;
         const { error: uploadError } = await supabase.storage.from("topbus").upload(filePath, file);
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error(`Erro ao fazer upload da imagem ${type}:`, uploadError);
+          throw new Error(`Falha ao enviar foto ${type}: ${uploadError.message}`);
+        }
         const { data: { publicUrl } } = supabase.storage.from("topbus").getPublicUrl(filePath);
-        await supabase.from("imagens").insert({
+        const { error: insertImageError } = await supabase.from("imagens").insert({
           sinistro_id: sinistro.id,
           nome_arquivo: file.name,
           url_publica: publicUrl,
@@ -239,15 +242,22 @@ export const IncidentForm = () => {
           tamanho: file.size,
           tipo_mime: file.type
         });
+        if (insertImageError) {
+          console.error(`Erro ao registrar imagem ${type}:`, insertImageError);
+          throw new Error(`Falha ao registrar foto ${type}: ${insertImageError.message}`);
+        }
       }
 
       // Upload additional documents (including audio)
       for (const doc of additionalDocs) {
         const filePath = `${protocolo}/docs/${Date.now()}-${doc.tipo}-${doc.file.name}`;
         const { error: uploadError } = await supabase.storage.from("topbus").upload(filePath, doc.file);
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error(`Erro ao fazer upload do documento ${doc.tipo}:`, uploadError);
+          throw new Error(`Falha ao enviar documento ${doc.tipo}: ${uploadError.message}`);
+        }
         const { data: { publicUrl } } = supabase.storage.from("topbus").getPublicUrl(filePath);
-        await supabase.from("documentos_complementares").insert({
+        const { error: insertDocError } = await supabase.from("documentos_complementares").insert({
           sinistro_id: sinistro.id,
           tipo: doc.tipo,
           nome_arquivo: doc.file.name,
@@ -256,6 +266,10 @@ export const IncidentForm = () => {
           tamanho: doc.file.size,
           tipo_mime: doc.file.type
         });
+        if (insertDocError) {
+          console.error(`Erro ao registrar documento ${doc.tipo}:`, insertDocError);
+          throw new Error(`Falha ao registrar documento ${doc.tipo}: ${insertDocError.message}`);
+        }
       }
 
       // Upload recorded audio if exists
@@ -264,10 +278,11 @@ export const IncidentForm = () => {
         const audioFilePath = `${protocolo}/audio/${audioFileName}`;
         const { error: audioUploadError } = await supabase.storage.from("topbus").upload(audioFilePath, audioBlob);
         if (audioUploadError) {
-          console.error("Audio upload error:", audioUploadError);
+          console.error("Erro ao fazer upload do áudio:", audioUploadError);
+          // Não interrompe o fluxo, apenas loga o erro
         } else {
           const { data: { publicUrl: audioUrl } } = supabase.storage.from("topbus").getPublicUrl(audioFilePath);
-          await supabase.from("documentos_complementares").insert({
+          const { error: insertAudioError } = await supabase.from("documentos_complementares").insert({
             sinistro_id: sinistro.id,
             tipo: "audio",
             nome_arquivo: audioFileName,
@@ -276,6 +291,9 @@ export const IncidentForm = () => {
             tamanho: audioBlob.size,
             tipo_mime: "audio/webm"
           });
+          if (insertAudioError) {
+            console.error("Erro ao registrar áudio:", insertAudioError);
+          }
         }
       }
 

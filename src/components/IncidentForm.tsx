@@ -72,6 +72,7 @@ export const IncidentForm = () => {
     contexto?: string;
   }>({});
   const [additionalDocs, setAdditionalDocs] = useState<AdditionalDoc[]>([]);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Cleanup preview URLs on unmount to prevent memory leaks
@@ -229,9 +230,9 @@ export const IncidentForm = () => {
       for (const [type, file] of imageEntries) {
         if (!file) continue;
         const filePath = `${protocolo}/${Date.now()}-${type}-${file.name}`;
-        const { error: uploadError } = await supabase.storage.from("sinistros").upload(filePath, file);
+        const { error: uploadError } = await supabase.storage.from("topbus").upload(filePath, file);
         if (uploadError) throw uploadError;
-        const { data: { publicUrl } } = supabase.storage.from("sinistros").getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage.from("topbus").getPublicUrl(filePath);
         await supabase.from("imagens").insert({
           sinistro_id: sinistro.id,
           nome_arquivo: file.name,
@@ -242,12 +243,12 @@ export const IncidentForm = () => {
         });
       }
 
-      // Upload additional documents
+      // Upload additional documents (including audio)
       for (const doc of additionalDocs) {
         const filePath = `${protocolo}/docs/${Date.now()}-${doc.tipo}-${doc.file.name}`;
-        const { error: uploadError } = await supabase.storage.from("sinistros").upload(filePath, doc.file);
+        const { error: uploadError } = await supabase.storage.from("topbus").upload(filePath, doc.file);
         if (uploadError) throw uploadError;
-        const { data: { publicUrl } } = supabase.storage.from("sinistros").getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage.from("topbus").getPublicUrl(filePath);
         await supabase.from("documentos_complementares").insert({
           sinistro_id: sinistro.id,
           tipo: doc.tipo,
@@ -257,6 +258,27 @@ export const IncidentForm = () => {
           tamanho: doc.file.size,
           tipo_mime: doc.file.type
         });
+      }
+
+      // Upload recorded audio if exists
+      if (audioBlob) {
+        const audioFileName = `audio-descricao-${Date.now()}.webm`;
+        const audioFilePath = `${protocolo}/audio/${audioFileName}`;
+        const { error: audioUploadError } = await supabase.storage.from("topbus").upload(audioFilePath, audioBlob);
+        if (audioUploadError) {
+          console.error("Audio upload error:", audioUploadError);
+        } else {
+          const { data: { publicUrl: audioUrl } } = supabase.storage.from("topbus").getPublicUrl(audioFilePath);
+          await supabase.from("documentos_complementares").insert({
+            sinistro_id: sinistro.id,
+            tipo: "audio",
+            nome_arquivo: audioFileName,
+            url_publica: audioUrl,
+            path_storage: audioFilePath,
+            tamanho: audioBlob.size,
+            tipo_mime: "audio/webm"
+          });
+        }
       }
 
       toast.success(`Relato registrado com sucesso. Protocolo: ${protocolo}`);
@@ -278,6 +300,7 @@ export const IncidentForm = () => {
       setImages({});
       setImagePreviews({});
       setAdditionalDocs([]);
+      setAudioBlob(null);
     } catch (error: any) {
       console.error("Error submitting form:", error);
       if (error instanceof z.ZodError) {
@@ -572,6 +595,7 @@ export const IncidentForm = () => {
           />
           <AudioRecorder
             onTranscription={(text) => setFormData({ ...formData, descricao: text })}
+            onAudioReady={(blob) => setAudioBlob(blob)}
             currentText={formData.descricao}
           />
         </div>
